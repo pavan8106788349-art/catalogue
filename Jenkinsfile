@@ -1,25 +1,17 @@
 pipeline {
-    agent { label 'roboshop' }
+    agent {
+        node {
+            label 'roboshop' 
+        } 
+    }
     environment {
         appVersion = ""
         ACC_ID = "593300579669"
-        AWS_REGION = "us-east-1"
+        region = "us-east-1"
     }
     options {
-        // //disableConcurrentBuilds()
+        //disableConcurrentBuilds()
         timeout(time: 5, unit: 'MINUTES')
-    }
-
-    stages{
-      stage('Debug Workspace') {
-            steps {
-                sh '''
-                    pwd
-                    ls -l
-                    find . -name package.json
-                '''
-            }
-        }  
     }
     /* parameters {
         string(name: 'PERSON', defaultValue: 'Mr Jenkins', description: 'Who should I say hello to?')
@@ -29,25 +21,31 @@ pipeline {
         password(name: 'PASSWORD', defaultValue: 'SECRET', description: 'Enter a password')
     } */
     stages {
-      stage('Read version') {
+        stage('Read version'){
             steps {
                 script {
+                    // Load and parse the JSON file
                     def packageJson = readJSON file: 'package.json'
-                    env.appVersion = packageJson.version
-                    echo "Version: ${env.appVersion}"
+                    
+                    // Access fields directly
+                    appVersion = packageJson.version
+                    echo "Building version ${appVersion}"
                 }
-    }
-}
-        stage('Install Dependencies') {
-            steps {
-                sh 'npm install'
             }
         }
-
-        stage('Build Image') {
+        stage('Install Dependencies') {
+            steps {
+                script{
+                    sh """
+                        npm install
+                    """
+                }
+            }
+        }
+         stage('Build Image') {
             steps {
                script{
-                    withAWS(credentials: 'aws-cred', region: "${region}") {
+                    withAWS(credentials: 'aws-creds', region: "${region}") {
                         // Commands here have AWS authentication
                         sh """
                             aws ecr get-login-password --region ${region} | docker login --username AWS --password-stdin ${ACC_ID}.dkr.ecr.us-east-1.amazonaws.com
@@ -73,3 +71,5 @@ pipeline {
         }
     }
 }
+    
+
