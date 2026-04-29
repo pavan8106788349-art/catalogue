@@ -29,14 +29,13 @@ pipeline {
         password(name: 'PASSWORD', defaultValue: 'SECRET', description: 'Enter a password')
     } */
     stages {
-
       stage('Read version') {
-    steps {
-        script {
-            def packageJson = readJSON file: 'package.json'
-            env.appVersion = packageJson.version
-            echo "Version: ${env.appVersion}"
-        }
+            steps {
+                script {
+                    def packageJson = readJSON file: 'package.json'
+                    env.appVersion = packageJson.version
+                    echo "Version: ${env.appVersion}"
+                }
     }
 }
         stage('Install Dependencies') {
