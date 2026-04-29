@@ -11,16 +11,18 @@ pipeline {
         timeout(time: 5, unit: 'MINUTES')
     }
 
-    stages {
-        stage('Read version') {
-            steps {
-                script {
-                    def packageJson = readJSON file: 'package.json'
-                    env.appVersion = packageJson.version
-                    echo "Version: ${env.appVersion}"
-                }
-            }
+    stage('Read version') {
+    steps {
+        script {
+            env.appVersion = sh(
+                script: "node -p \"require('./package.json').version\"",
+                returnStdout: true
+            ).trim()
+
+            echo "Version: ${env.appVersion}"
         }
+    }
+}
 
         stage('Install Dependencies') {
             steps {
