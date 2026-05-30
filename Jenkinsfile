@@ -6,7 +6,7 @@ pipeline {
     }
 
     environment {
-        COURSE = "Jenkins"
+        appVersion = "Jenkins"
     }
 
     options {
@@ -14,49 +14,41 @@ pipeline {
         timeout(time: 5, unit: 'MINUTES')
     }
 
-    parameters {
+   /*  parameters {
         string(name: 'PERSON', defaultValue: 'Mr Jenkins', description: 'Who should I say hello to?')
         text(name: 'BIOGRAPHY', defaultValue: '', description: 'Enter some information about the person')
         booleanParam(name: 'DEPLOY', defaultValue: false, description: 'Toggle this value')
         choice(name: 'CHOICE', choices: ['One', 'Two', 'Three'], description: 'Pick something')
         password(name: 'PASSWORD', defaultValue: 'SECRET', description: 'Enter a password')
-    }
+    } */
 
     stages {
-        stage('Build') {
+        stage('Read Version'){
+             steps {
+                script {
+                    // Read and parse the package.json file
+                    def packageJson = readJSON file: 'package.json'
+                    
+                    // Access fields directly
+                    appversion = packageJson.version
+                    echo "Building ${appName} version ${appversion}"
+                }    
+        }
+        stage('Install dependencies') {
             steps {
                 sh """
-                    echo "Testing"
-                    echo "Hello $PERSON"
-                    echo "Biography: $BIOGRAPHY"
-                    echo "Deploy Toggle: $DEPLOY"
-                    echo "Choice: $CHOICE"
-                    echo "Password: $PASSWORD"
+                    npm install
                 """
             }
         }
 
-        stage('Test') {
+        stage('Build docker iamge') {
             steps {
                 sh """
-                    echo "Testing Stage"
-                    echo "Course: $COURSE"
+                    docker build -t catalogue:${appVersion}
                 """
             }
         }
-
-        stage('Deploy') {
-            when {
-                expression { params.DEPLOY == true }
-            }
-            steps {
-                input message: "Should we continue?", ok: "Yes"
-                sh """
-                    echo "Deploying application..."
-                """
-            }
-        }
-    }
 
     post {
         always {
