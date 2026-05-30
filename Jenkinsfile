@@ -8,6 +8,8 @@ pipeline {
     environment {
         appVersion = "1.0"
         ACC_ID = "593300579669"
+        REGION = "us-east-1"
+        REPO = "roboshop/catalogue"
     }
 
     options {
@@ -29,22 +31,30 @@ pipeline {
 
         stage('Install dependencies') {
             steps {
-                sh """
-                    npm install
-                """
+                sh 'npm install'
             }
         }
 
-        stage('Build docker image') {
+        stage('Build & Push Docker Image') {
             steps {
-                sh """
-                    withAWS(credentials: 'aws-creds-id , region: 'us-east-1' ){
-                    // commands here have AWS authentication
+                script {
+
                     sh """
-                      aws ecr get-login-password --region ${region} | docker login --username AWS --password-stdin ${ACC_ID}.dkr.ecr.us-east-1.amazonaws.com
-                      docker build -t ${ACC_ID}.dkr.ecr.${region}.amazonaws.com/roboshop/catalogue:${appVersion} .
-                      docker push ${ACC_ID}.dkr.ecr.${region}.amazonaws.com/roboshop/catalogue:${appVersion} 
-                }    
+                        aws ecr get-login-password --region ${REGION} | docker login --username AWS --password-stdin ${ACC_ID}.dkr.ecr.${REGION}.amazonaws.com
+                    """
+
+                    sh """
+                        docker build -t ${REPO}:${appVersion} .
+                    """
+
+                    sh """
+                        docker tag ${REPO}:${appVersion} ${ACC_ID}.dkr.ecr.${REGION}.amazonaws.com/${REPO}:${appVersion}
+                    """
+
+                    sh """
+                        docker push ${ACC_ID}.dkr.ecr.${REGION}.amazonaws.com/${REPO}:${appVersion}
+                    """
+                }
             }
         }
     }
@@ -54,12 +64,10 @@ pipeline {
             echo 'Pipeline finished'
         }
         success {
-            echo "pipeline success"
+            echo 'pipeline success'
         }
         failure {
-            echo "pipeline failure"
+            echo 'pipeline failure'
         }
     }
 }
-
-
