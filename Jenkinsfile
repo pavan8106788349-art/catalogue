@@ -7,6 +7,7 @@ pipeline {
 
     environment {
         appVersion = "1.0"
+        ACC_ID = "593300579669"
     }
 
     options {
@@ -37,8 +38,13 @@ pipeline {
         stage('Build docker image') {
             steps {
                 sh """
-                    docker build -t catalogue:${env.appVersion} .
-                """
+                    withAWS(credentials: 'aws-creds-id , region: 'us-east-1' ){
+                    // commands here have AWS authentication
+                    sh """
+                      aws ecr get-login-password --region ${region} | docker login --username AWS --password-stdin ${ACC_ID}.dkr.ecr.us-east-1.amazonaws.com
+                      docker build -t ${ACC_ID}.dkr.ecr.${region}.amazonaws.com/roboshop/catalogue:${appVersion} .
+                      docker push ${ACC_ID}.dkr.ecr.${region}.amazonaws.com/roboshop/catalogue:${appVersion} 
+                }    
             }
         }
     }
