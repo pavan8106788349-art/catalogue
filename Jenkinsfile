@@ -1,7 +1,11 @@
 @Library('jenkins-test-library') _
 
 def configMap = [
+<<<<<<< HEAD
     project: "roboshop",
+=======
+    project: "roboshop" ,
+>>>>>>> 690035f (jenkins)
     component: "catalogue"
 ]
 
