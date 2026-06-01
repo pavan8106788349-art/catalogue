@@ -42,6 +42,7 @@ pipeline {
         }
     }
 <<<<<<< HEAD
+<<<<<<< HEAD
 }
 =======
 if (env.BRANCH_NAME.equalsIgnoreCase('main')) {
@@ -53,3 +54,7 @@ if (env.BRANCH_NAME.equalsIgnoreCase('main')) {
 =======
 }
 >>>>>>> bbd56ca (jenkins)
+=======
+}
+}
+>>>>>>> f2d6e11 (jenkins)
