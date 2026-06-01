@@ -1,15 +1,26 @@
 @Library('jenkins-test-library') _
 
 def configMap = [
-    project: "roboshop"
+    project: "roboshop",
     component: "catalogue"
 ]
 
-echo "Triggering the Library pipeline"
+pipeline {
+    agent any
 
-if (env.BRANCH_NAME.equalIgnoreCase('main')){
-    echo "checking later"
-}
-else{
-    testPipeline(configMap)
+    stages {
+        stage('Run Shared Library') {
+            steps {
+                script {
+                    echo "Triggering the Library pipeline"
+
+                    if (env.BRANCH_NAME?.equalsIgnoreCase('main')) {
+                        echo "checking later"
+                    } else {
+                        testPipeline(configMap)
+                    }
+                }
+            }
+        }
+    }
 }
