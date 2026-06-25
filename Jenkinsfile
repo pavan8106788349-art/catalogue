@@ -1,60 +1,91 @@
-@Library('jenkins-test-library') _
-
-def configMap = [
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-    project: "roboshop",
-=======
-    project: "roboshop" ,
->>>>>>> 690035f (jenkins)
-    component: "catalogue"
-=======
-    "project": "roboshop",
-    "component": "catalogue"
->>>>>>> f45a493 (jenkins)
-=======
-    project: "roboshop",
-    component: "catalogue"
->>>>>>> bbd56ca (jenkins)
-]
-
 pipeline {
-    agent any
+    agent {
+        node {
+            label 'ROBOSHOP'
+        }
+    }
+    environment {
+        appVersion = ""
+    }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> bbd56ca (jenkins)
+    options {
+        // disableConcurrentBuilds()
+        timeout(time: 5, unit: 'MINUTES')
+    }  
+
+    /* parameters {
+        string(name: 'PERSON', defaultValue: 'Mr Jenkins', description: 'Who should I say hello to?')
+        text(name: 'BIOGRAPHY', defaultValue: '', description: 'Enter some information about the person')
+        booleanParam(name: 'DEPLOY', defaultValue: false, description: 'Toggle this value')
+        choice(name: 'CHOICE', choices: ['One', 'Two', 'Three'], description: 'Pick something')
+        password(name: 'PASSWORD', defaultValue: 'SECRET', description: 'Enter a password')
+    }  */
+
     stages {
-        stage('Run Shared Library') {
+        stage('Read version') {
             steps {
                 script {
-                    echo "Triggering the Library pipeline"
+                    // Load and parse json file
+                    def packageJson = readJSON file: 'package.json'
+                    
+                    // Extract properties using dot notation
+                    appVersion = packageJson.version
+                    echo "Building ${appName} version ${appVersion}"
+                }    }    
+        }
+        stage('Install dependencies') { 
+            steps {
+                script{
+                    sh '''
+                       npm install
+                    '''
+                }
+            }
+        }
 
-                    if (env.BRANCH_NAME?.equalsIgnoreCase('main')) {
-                        echo "checking later"
-                    } else {
-                        testPipeline(configMap)
-                    }
+        stage('Build Image') { 
+            steps {
+                script{
+                    sh """
+                      docker build -t catalogue:${appVersion}
+                    """
+                }
+            }
+        }
+        stage('Deploy') {
+            when {
+                expression { "${params.DEPLOY}" == "true" }
+            }
+
+            /* input {
+                message "Should we continue?"
+                ok "Yes, we should."
+                submitter "alice,bob"
+                parameters {
+                    string(name: 'PERSON', defaultValue: 'Mr Jenkins', description: 'Who should I say hello to?')
+                }
+            } */
+
+        stage('Deploy') { 
+            steps {
+                script{
+                    sh '''
+                     echo "Deploying" 
+                    '''
                 }
             }
         }
     }
-<<<<<<< HEAD
-<<<<<<< HEAD
+
+    post { 
+        always { 
+            echo 'I will always say Hello again!'
+        }
+        success {
+            echo "pipeline success"
+        }
+        failure {
+            echo "pipeline failure"
+        }
+    }
 }
-=======
-if (env.BRANCH_NAME.equalsIgnoreCase('main')) {
-    echo "checking later"
-} else {
-    testPipeline(configMap)
-}
->>>>>>> f45a493 (jenkins)
-=======
-}
->>>>>>> bbd56ca (jenkins)
-=======
-}
-}
->>>>>>> f2d6e11 (jenkins)
