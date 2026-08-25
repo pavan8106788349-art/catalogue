@@ -17,14 +17,17 @@ pipeline {
 
     stages {
         stage('Read version') {
-            steps {
-                script {
-                    def packageJson = readJSON file: 'package.json'
-                    appVersion = packageJson.version
-                    echo "Building version ${appVersion}"
-                }
-            }    
+    steps {
+        script {
+            appVersion = sh(
+                script: "node -p \"require('./package.json').version\"",
+                returnStdout: true
+            ).trim()
+
+            echo "Building version ${appVersion}"
         }
+    }
+}
 
         stage('Install dependencies') { 
             steps {
