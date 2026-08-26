@@ -55,7 +55,7 @@ pipeline {
                     
                     // Access fields directly
                     def appVersion = packageJson.version
-                    echo "Building ${appName} echo Version ${appVersion}"
+                    echo "Building version ${appVersion}"
                 }    }        
         }
         stage('Install Dependencies') {
