@@ -6,72 +6,115 @@ pipeline {
     }
 
     environment {
-    APP_VERSION = ""
-    ACC_ID = "353617811136"
-    AWS_REGION = "us-east-1"
+        appVersion = ""
     }
 
     options {
+        /* disableConcurrentBuilds() */
         timeout(time: 5, unit: 'MINUTES')
-    }  
+    }
+
+    /* parameters {
+        string(
+            name: 'PERSON',
+            defaultValue: 'Mr Jenkins',
+            description: 'Who should I say hello to?'
+        )
+
+        text(
+            name: 'BIOGRAPHY',
+            defaultValue: '',
+            description: 'Enter some information about the person'
+        )
+
+        booleanParam(
+            name: 'DEPLOY',
+            defaultValue: false,
+            description: 'Toggle this value'
+        )
+
+        choice(
+            name: 'CHOICE',
+            choices: ['One', 'Two', 'Three'],
+            description: 'Pick something'
+        )
+
+        password(
+            name: 'PASSWORD',
+            defaultValue: 'SECRET',
+            description: 'Enter a password'
+        )
+    } */
 
     stages {
-        stage('Read version') {
-    steps {
-        script {
-            appVersion = sh(
-                script: "node -p \"require('./package.json').version\"",
-                returnStdout: true
-            ).trim()
-
-            echo "Building version ${appVersion}"
-        }
-    }
-}
-
-        stage('Install dependencies') { 
+        stage('Read Version') {
             steps {
                 script {
-                    sh 'npm install'
+                    // Load and parse JSON file
+                    def packageJson = readJSON file: 'package.json'
+                    
+                    // Access fields directly
+                    def appVersion = packageJson.version
+                    echo "Building ${appName} echo Version ${appVersion}"
+                }    }        
+        }
+        stage('Install Dependencies') {
+            steps {
+                script {
+                    sh """
+                        npm install
+                    """
                 }
             }
         }
 
-    stage('Build Image') { 
-    steps {
-        script {
-            def region = "us-east-1"
-
-            withAWS(credentials: 'aws-creds', region: "${region}") {
-                sh """
-                    aws ecr get-login-password --region ${region} | docker login --username AWS --password-stdin ${ACC_ID}.dkr.ecr.${region}.amazonaws.com
-                    docker build -t ${ACC_ID}.dkr.ecr.${region}.amazonaws.com/roboshop/catalogue:${appVersion} .
-                    docker push ${ACC_ID}.dkr.ecr.${region}.amazonaws.com/roboshop/catalogue:${appVersion}
-                """
+        stage('Build Image') {
+            steps {
+                script {
+                    sh """
+                        docker build -t catalogue:${appVersion}
+                    """
+                }
             }
         }
-    }
-}
 
         stage('Deploy') {
             when {
-                expression { params.DEPLOY == true }
+                expression {  "${params.DEPLOY}" == "true" }
             }
+            // input {
+            //     message "Should we continue?"
+            //     ok "Yes, we should."
+            //     submitter "alice,bob"
+
+            //     parameters {
+            //         string(
+            //             name: 'PERSON',
+            //             defaultValue: 'Mr Jenkins',
+            //             description: 'Who should I say hello to?'
+            //         )
+            //     }
+            // }
+
             steps {
                 script {
-                    sh 'echo "Deploying"'
+                    sh """
+                        echo "Deploying"
+                    """
                 }
             }
         }
     }
 
-    post { 
-        always { 
+    post {
+        always {
             echo 'I will always say Hello again!'
         }
+
         success {
             echo "pipeline success"
         }
+
         failure {
             echo "pipeline failure"
         }
