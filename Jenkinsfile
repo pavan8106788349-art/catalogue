@@ -44,7 +44,7 @@ pipeline {
             steps {
                 script {
                     withAWS(
-                        credentials: "aws-creds",
+                        credentials: "Aws-creds",
                         region: "${AWS_REGION}"
                     ) {
                         sh """
